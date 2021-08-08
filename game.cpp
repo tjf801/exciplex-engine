@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 enum Color {
 	NONE = 0,
@@ -20,6 +21,7 @@ struct BoardSquare {
 	
 	inline bool is_goal() const {return this->is_not_occupiable && this->color != Color::NONE;}
 	inline bool is_piece() const {return !this->is_not_occupiable && this->color != Color::NONE;}
+	inline bool is_empty() const {return !this->is_not_occupiable && this->color == Color::NONE;}
 };
 
 class Board {
@@ -90,10 +92,41 @@ public:
 		return Color::NONE;
 	}
 	
+	BoardSquare& get_square(int x, int y) {
+		if (x < 0 || x > 7) throw std::invalid_argument("x is out of bounds");
+		if (y < 0 || y > 6) throw std::invalid_argument("y is out of bounds");
+		return _board[y][x];
+	}
+	
+	bool is_valid_move(int start_x, int start_y, int end_x, int end_y) {
+		//TODO: this sucks
+		if (!this->get_square(start_x, start_y).is_piece()) {
+			return false;
+			throw std::invalid_argument(std::string("no piece at coordinates ")+std::to_string(start_x)+","+std::to_string(start_y));
+		}
+		if (!this->get_square(end_x, end_y).is_empty()) {
+			return false;
+		}
+		switch (abs(start_x-end_x)) {
+			case 0: return true;
+			case 1: return true;
+			case 2: {
+				if (abs(start_y-end_y)==2) {
+					if (this->get_square((start_x+end_x)/2, (start_y+end_y)/2).is_piece() && this->get_square((start_x+end_x)/2, (start_y+end_y)/2).color != this->get_square((start_x)/2, (start_y)/2).color) {
+						return true;
+					}
+					return false;
+				} else return false;
+			}
+			default: return false;
+		}
+	}
+	
 	void move_piece(int start_x, int start_y, int end_x, int end_y) {
-		if (this->_board[start_x][start_y].is_piece()) {
-			//TODO
-		} else throw std::exception();
+		//TODO - check if move is valid move
+		if (is_valid_move(start_x, start_y, end_x, end_y)) {
+			
+		}
 	}
 	
 	friend std::ostream& operator<<(std::ostream& stream, const Board& board) {
